@@ -1,4 +1,5 @@
-from elastichostsapi import ElastichostsApi
+from src.elastichostsapi import ElastichostsApi
+from src.ehserverinfo import EHServerInfo
 
 import os
 import sys
@@ -19,5 +20,5 @@ if __name__ == "__main__":
                             apikey=apikey, 
                             json=True)
                             
-    response = ehconn.execute("servers/list")
-    print response.json()
+    server_info = EHServerInfo(ehconn)
+    server_info.printServersAndDrives()
