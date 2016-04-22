@@ -22,30 +22,42 @@ class EHServerInfo():
         # dict that contains the mapping between servers and drives
         server_drive_dict = {}
         
-        # Iterate once over the servers toadd them to do dict
+        # Create dict of drive with it's uuid as the key
+        driveuuid_dict = {}
+        for drive in driveslist:
+            driveuuid_dict[drive['drive']] = drive['name']
+        
+        # Iterate over the server list, generating mount keys as necessary
+        # and checking whether the uuid of that mount is in the driveuuid_dict
         for server in serverlist:
             server_drive_dict[server['name']] = []
-        
-        # Get info on each server
-        for drive in driveslist:
-            # boolean to check if we have found the drive/server mapping
-            # and use to stop checking more servers
-            found = False
-            
-            for server in serverlist:
-                # Check each drive number in the server json
-                # to see if it matches the drive uuid
-                for i in range(8):
-                    key = "block:{}".format(i)
-                    if key in server:
-                        if server[key] == drive['drive']:
-                            servername = server['name']
-                            server_drive_dict[servername].append(drive['name'])
-                            found = True
-                            break
-                if found:
-                    break
-                
+            for key in self.generateMountKey():
+                if key in server:
+                    if server[key] in driveuuid_dict:
+                        server_drive_dict[server['name']].append(driveuuid_dict[server[key]])
+                        
         return server_drive_dict
+                        
+        
+    def generateMountKey(self):
+        # Check for IDE mounts
+        for i in xrange(2):
+            for j in xrange(2):
+                yield "ide:{}:{}".format(i, j)
+    
+        # Check for VirtIO blocks
+        for i in xrange(8):
+            yield "block:{}".format(i)
+            
+        # Check for ATA mounts
+        for i in xrange(1):
+            for j in xrange(6):
+                yield "ata:{}:{}".format(i, j)
+                
+        # Check for SCSI mounts
+        for i in xrange(1):
+            for j in xrange(7):
+                yield "scsi:{}:{}".format(i, j)
+               
             
         
